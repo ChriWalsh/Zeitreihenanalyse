@@ -4,7 +4,7 @@ x <- rnorm(100, 1, 2)
 # Create empirical mean function
 emp.mean <- function(x){
   T <- length(x)
-  x_bar <- solve(T)* sum(x)
+  x_bar <- solve(T) * sum(x)
   return(x_bar)
 }
 # Get result: same as built in
