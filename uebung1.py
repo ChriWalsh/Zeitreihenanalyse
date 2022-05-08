@@ -1,5 +1,7 @@
 """Solves Uebung 0 in Python"""
+
 import numpy as np
+
 # Create 100 i.i.d. data points (White Noise)
 x = np.random.normal(1, 2, 100)
 
