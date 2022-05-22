@@ -20,4 +20,4 @@ for i, q in enumerate(Q):
 plt.legend()
 plt.show() # Prints plot into environment
 
-
+# Implementation in Jupyter Notebook is more convenient... please refer to uebung3.ipynb

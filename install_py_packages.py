@@ -1,6 +1,6 @@
 """
 Script to install required python packages 
-heavily copy-pasted from 
+Method of making system call from: 
 https://www.activestate.com/resources/quick-reads/how-to-install-python-packages-using-a-script/
 """
 import sys
