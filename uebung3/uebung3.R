@@ -8,6 +8,7 @@ rm(list = ls())
 gen_moving_average <- function(q, num_t = 200) {
     # Gaussian White Noise is i.i.d. ~N(0,1)
     # Idea: We need observations+q shocks
+    set.seed(1)
     epsilon <- rnorm((num_t + q))
     x <- rep(NULL, num_t)
     for (i in 1:num_t) {
@@ -46,6 +47,7 @@ gen_ar1 <- function(a, num_t, tolerance = 0.0001) {
     # s.t. a**n <= tolerance => n = ceiling(log_a(tolerance))
     # as |a| < 1
     n <- ceiling(logb(tolerance, base = abs(a)))
+    set.seed(1)
     epsilon_past <- rnorm(n)
     epsilon_future <- rnorm(num_t)
     a_vec <- vector()
@@ -89,17 +91,12 @@ acf_ar1 <- function(a, h_list, sigma=1) {
     # Very ineligant for-loops because of R-syntax
     for (i in seq_along(h_list)) {
         h <- h_list[i]
-        if (h == 0) {
-            acf[i] <- sigma**2 / ((1 - a)**2)
-        }
-        else {
-            acf[i] <- (a**abs(h)) * (sigma**2 / ((1 - a)**2))
-        }
+        acf[i] <- (a**abs(h)) * (sigma**2 / ((1 - a)**2))
     }
     return(acf)
 }
 
-h_list <- -100:100
+h_list <- 0:100
 a_list <- c(-0.95, -0.5, 0.5, 0.95)
 
 par(mfrow = c(length(a_list), 1))
@@ -123,14 +120,14 @@ a <- -0.75
 b <- 0.5
 
 # First "dry":
-c0 <- 1 + a
-c1 <- c0 + b
+c0 <- 1
+c1 <- a * c0 + b
 c2 <- a * c1
 # from c1 on there is a AR(1) representation
 c_j <- function(j, a, b) {
-    c0 <- 1 + a
-    c1 <- (1 + a) + b
-    return(if (j) a** (j - 1) * c1 else c0)
+    c0 <- 1
+    c1 <- c0 * a + b
+    return(if (j != 0) a** (j - 1) * c1 else c0)
 }
 c_j(j = 0, a, b)
 
@@ -146,19 +143,31 @@ plot(n, c_minus, type = "l")
 
 
 #### Exercise 5 ####
+# acf_arma11 <- function(h, a, b, sigma, tolerance = 0.0001) {
+#     print("This specification has a bug!")
+#     c_values <- vector()
+#     i <- 0
+#     while (TRUE) {
+#         c_value <- c_j(i, a, b) * c_j(i + h, a, b)
+#         if (c_value < tolerance) {
+#             break
+#         }
+#         c_values[i + 1] <- c_value
+#         i <- i + 1
+#     }
+#     return(sigma**2 * sum(c_values))
+# }
 
+# acf_arma11(0, -0.75, 0.5, 1)
+# acf_arma11(1, -0.75, 0.5, 1) # Should be <0
+# acf_arma11(2, -0.75, 0.5, 1)
+# acf_arma11(3, -0.75, 0.5, 1) # Should be <0
+# acf_many <- lapply(0:100, function(h) acf_arma11(h, -0.75, 0.5, 1))
+# acf_many
+
+# Stealing from formular/python spec:
 acf_arma11 <- function(h, a, b, sigma, tolerance = 0.0001) {
-    c_values <- vector()
-    i <- 0
-    while (TRUE) {
-        c_value <- c_j(i, a, b) * c_j(i + h, a, b)
-        if (c_value < tolerance) {
-            break
-        }
-        c_values[i + 1] <- c_value
-        i <- i + 1
-    }
-    return(sigma**2 * sum(c_values))
+    return(sigma**2 * a** (h - 1) * (b + a + (b + a)**2 * a / (1 - a**2)))
 }
 
 # Assigning values
@@ -172,3 +181,4 @@ acf_minus <- lapply(n,
 par(mfrow = c(2, 1))
 plot(n, acf_plus, type = "l")
 plot(n, acf_minus, type = "l")
+
