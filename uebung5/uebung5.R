@@ -30,7 +30,7 @@ ar_matrix[1, ] # all the same for same seed
 
 # b.)
 
-acf_est<- function(h, x_vector) {
+acf_est <- function(h, x_vector) {
     num_obs <- length(x_vector)
     return(sum(x_vector[(1 + h):num_obs] * x_vector[1:(num_obs - h)]) / num_obs)
 }
@@ -92,11 +92,8 @@ g2 <- acf2_hat(2)
 
 # To needlessly complicate matters we are going to use arrays-----
 
-# a is 2X100
-# acf2(h) is 100X1
-# Gamma would need to be 100x2x2 tensor/array
+# Gamma needs to be 100x2x2 tensor/array
 gamma <- array(c(g0, g1, g1, g0), dim = c(100, 2, 2))
-gamma[1, , ] # checking N=1
 gamma_inv <- apply(gamma, c(1), solve)
 dim(gamma_inv) # R ate the dimensions...
 gamma_inv <- array(t(gamma_inv), dim = c(100, 2, 2))
@@ -105,6 +102,8 @@ gamma_inv[1, , ] == solve(gamma[1, , ]) # actually worked ...
 g <- rbind(g1, g2)
 dim(g)
 dim(gamma_inv)
+
+# Unfortunately don't know how the sweep() function works...
 a <- matrix(, 100, 2)
 for (i in 1:100) {
     # solve a = inverse(gamma) * g for all N
@@ -117,11 +116,28 @@ mean(a[, 2]) # Or not ...
 
 
 # Array trick didn't work, so here the same by hand ----
-gamma_1 <- rbind(g0, g1)
-gamma_2 <- rbind(g1, g0)
 
 a <- matrix(, 100, 2)
 for (i in 1:100) {
-    a[i,] <- solve(matrix(c(g0[i], g1[i], g1[i], g0[i]),
-                    2, 2)) * c(g1[i], g2[i])
+    a[i, ] <- solve(matrix(c(g0[i], g1[i], g1[i], g0[i]),
+                    2, 2)) %*% c(g1[i], g2[i])
 }
+
+mean(a[, 1])
+mean(a[, 2]) # Same result must have been "correct" all along...
+plot(a[, 1])
+plot(a[, 2])
+
+
+# c.)
+num_obs <- dim(ar_2_matrix)[1]
+num_obs
+emp_errors <- (ar_2_matrix[3:num_obs, ]
+             +  ar_2_matrix[2:(num_obs - 1), ] * a[, 1]
+             +  ar_2_matrix[1:(num_obs - 2), ] * a[, 2])
+
+emp_sigma_square <- apply(emp_errors, 2, mean)
+length(emp_sigma_square)
+plot(emp_sigma_square)
+
+# These measures are much to small... maybe this is where the accuracy was lost ...
